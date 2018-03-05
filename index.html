@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>AdamLink Draw!</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
+
+    <!-- clipboard -->
+    <script src="https://unpkg.com/clipboard@2.0.0/dist/clipboard.min.js"></script>
+
+
+    <!-- Leaflet draw things -->
+    <script src="js/src/Leaflet.draw.js"></script>
+    <script src="js/src/Leaflet.Draw.Event.js"></script>
+    <link rel="stylesheet" href="js/src/leaflet.draw.css"/>
+
+    <script src="js/src/Toolbar.js"></script>
+    <script src="js/src/Tooltip.js"></script>
+
+    <script src="js/src/ext/GeometryUtil.js"></script>
+    <script src="js/src/ext/LatLngUtil.js"></script>
+    <script src="js/src/ext/LineUtil.Intersect.js"></script>
+    <script src="js/src/ext/Polygon.Intersect.js"></script>
+    <script src="js/src/ext/Polyline.Intersect.js"></script>
+    <script src="js/src/ext/TouchEvents.js"></script>
+
+    <script src="js/src/draw/DrawToolbar.js"></script>
+    <script src="js/src/draw/handler/Draw.Feature.js"></script>
+    <script src="js/src/draw/handler/Draw.SimpleShape.js"></script>
+    <script src="js/src/draw/handler/Draw.Polyline.js"></script>
+    <script src="js/src/draw/handler/Draw.Marker.js"></script>
+    <script src="js/src/draw/handler/Draw.Circle.js"></script>
+    <script src="js/src/draw/handler/Draw.CircleMarker.js"></script>
+    <script src="js/src/draw/handler/Draw.Polygon.js"></script>
+    <script src="js/src/draw/handler/Draw.Rectangle.js"></script>
+
+    <script src="js/src/edit/EditToolbar.js"></script>
+    <script src="js/src/edit/handler/EditToolbar.Edit.js"></script>
+    <script src="js/src/edit/handler/EditToolbar.Delete.js"></script>
+
+    <script src="js/src/Control.Draw.js"></script>
+
+    <script src="js/src/edit/handler/Edit.Poly.js"></script>
+    <script src="js/src/edit/handler/Edit.SimpleShape.js"></script>
+    <script src="js/src/edit/handler/Edit.Rectangle.js"></script>
+    <script src="js/src/edit/handler/Edit.Marker.js"></script>
+    <script src="js/src/edit/handler/Edit.CircleMarker.js"></script>
+    <script src="js/src/edit/handler/Edit.Circle.js"></script>
+
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            color: #333;
+            font-family: "Open Sans","HelveticaNeue","Helvetica Neue",Helvetica,Arial,sans-serif;
+            font-size: 16px;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            bottom: 0;
+        }
+
+        #wrapper {
+            position: absolute;
+            display:none;
+            padding: 6px;
+            width: 20%;
+            height: auto;
+            min-height: 400px;
+            top: 110px;
+            right: 4px;
+            background-color: #efefef;
+            border: 2px solid dimgray;
+            z-index: 99998;
+        }
+        #copyBtn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            z-index: 99999;
+        }
+        h2, h3 {
+            margin: 4px 0;
+        }
+    </style>
+
+</head>
+<body>
+
+<div id="map"></div>
+<div id="wrapper">
+    <button id="copyBtn" class="pure-button pure-button-primary" data-clipboard-action="copy" data-clipboard-target="#geojson">
+        Copy
+    </button>
+    <div id="geojson"></div>
+</div>
+
+
+<script src="js/map.layers.js"></script>
+<script>
+
+    // init map
+    var map = L.map('map', {
+        center: [52.372812,4.89372], // amsterdam
+        zoom: 14
+    });
+    map.addLayer(cartodb);
+    map.addLayer(tram1900);
+
+    L.control.layers(baseMaps, overlayMaps, {
+        collapsed: false, //position: 'topleft'
+    }).addTo(map);
+
+
+    // integrate draw
+    var drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    var drawControl = new L.Control.Draw({
+        draw: {
+            position: 'topleft',
+            circle: {
+                shapeOptions: {
+                    color: '#662d91'
+                }
+            },
+            polygon: {
+                title: 'Draw a polygon',
+                allowIntersection: false,
+                drawError: {
+                    timeout: 1000,
+                    color: '#e1e100', // Color the shape will turn when intersects
+                    message: '<strong>Oh snap!<strong> you can\'t draw that!' // Message that will show when intersect
+                },
+                shapeOptions: {
+                    color: '#006699'
+                },
+                showArea: true
+            },
+            polyline: {
+                title: 'Draw some lines',
+                metric: false,
+                shapeOptions: {
+                    color: '#FC0011',
+                    weight: 4
+                }
+            }
+        },
+        edit: {
+            featureGroup: drawnItems
+        }
+    });
+    map.addControl(drawControl);
+
+    // draw events
+    map.on(L.Draw.Event.CREATED, function (e) {
+        var type = e.layerType,
+            layer = e.layer;
+
+        drawnItems.addLayer(layer);
+        printGeometry(layer.toGeoJSON(), 'geojson');
+    });
+    map.on(L.Draw.Event.EDITED, function (e) {
+        var layers = e.layers;
+        layers.eachLayer(function (layer) {
+
+            printGeometry(layer.toGeoJSON(), 'geojson');
+        });
+    });
+
+
+    function printGeometry(geojson, id) {
+        var geoString = JSON.stringify(geojson, null, 4);
+
+        document.getElementById('wrapper').style.display = 'block';
+        document.getElementById(id).innerHTML = '';
+        document.getElementById(id).appendChild(document.createElement('pre')).innerHTML = geoString;
+    }
+
+    new ClipboardJS('#copyBtn');
+</script>
+
+</body>
+</html>
