@@ -19,6 +19,11 @@ var tram1911 = L.tileLayer('https://mapwarper.net/maps/tile/28385/{z}/{x}/{y}.pn
     maxZoom: 20,
     maxNativeZoom: 19
 });
+var omnibus1839 = L.tileLayer('https://mapwarper.net/maps/tile/28781/{z}/{x}/{y}.png', {
+    'opacity': 0.7,
+    maxZoom: 20,
+    maxNativeZoom: 19
+});
 
 var baseMaps = {
     "Open street map": osm,
@@ -27,6 +32,7 @@ var baseMaps = {
 
 var overlayMaps = {
     "Paardentram Amsterdam 1900": tram1900,
-    "Gemeentetram Amsterdam 1911": tram1911
+    "Gemeentetram Amsterdam 1911": tram1911,
+    "Omnibus kaart 1839": omnibus1839
 
 };
