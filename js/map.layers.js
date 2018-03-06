@@ -24,6 +24,16 @@ var omnibus1839 = L.tileLayer('https://mapwarper.net/maps/tile/28781/{z}/{x}/{y}
     maxZoom: 20,
     maxNativeZoom: 19
 });
+var saa = L.tileLayer.wms('http://geoserver.memorix.nl/geoserver/ams/wms', {
+    layers: 'ams:ad374037-970f-8a67-6110-a45da204162a',
+    format: 'image/png',
+    crs: L.CRS.EPSG4326,
+    transparent: false,
+    version: '1.1.1',
+    zIndex: 1,
+    opacity: 0.7,
+    attribution: '&copy; <a href="http://beeldbank.amsterdam.nl/beeldbank/weergave/record/?id=KOKA00649000002">Beeldbank Stadsarchief</a>'
+});
 
 var baseMaps = {
     "Open street map": osm,
@@ -31,8 +41,8 @@ var baseMaps = {
 };
 
 var overlayMaps = {
+    "Omnibus kaart 1839": omnibus1839,
     "Paardentram Amsterdam 1900": tram1900,
     "Gemeentetram Amsterdam 1911": tram1911,
-    "Omnibus kaart 1839": omnibus1839
-
+    "Gemeente-Tram 1928-1940": saa
 };

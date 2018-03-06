@@ -116,10 +116,10 @@
         zoom: 14
     });
     map.addLayer(cartodb);
-    map.addLayer(tram1900);
+    map.addLayer(saa);
 
     L.control.layers(baseMaps, overlayMaps, {
-        collapsed: false, //position: 'topleft'
+        collapsed: false //position: 'topleft'
     }).addTo(map);
 
 
@@ -167,10 +167,10 @@
     map.on(L.Draw.Event.CREATED, function (e) {
         var type = e.layerType,
             layer = e.layer;
-
         drawnItems.addLayer(layer);
         printGeometry(layer.toGeoJSON(), 'geojson');
     });
+
     map.on(L.Draw.Event.EDITED, function (e) {
         var layers = e.layers;
         layers.eachLayer(function (layer) {
@@ -178,7 +178,6 @@
             printGeometry(layer.toGeoJSON(), 'geojson');
         });
     });
-
 
     function printGeometry(geojson, id) {
         var geoString = JSON.stringify(geojson, null, 4);
